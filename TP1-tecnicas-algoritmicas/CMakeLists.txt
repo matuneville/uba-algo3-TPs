@@ -6,4 +6,5 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(runEj_1 ejercicio1.cpp)
 add_executable(runEj_2 ejercicio2.cpp)
 add_executable(runEj_3 ejercicio3.cpp)
+add_executable(runEj_3_td ejercicio3topdown.cpp)
 
