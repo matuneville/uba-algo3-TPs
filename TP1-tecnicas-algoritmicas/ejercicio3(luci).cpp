@@ -9,30 +9,29 @@ vector<int> valores = {};
 vector<char> solActual = {};
 vector<vector<vector<char>>> dp = {};
 
+
 bool IMPOSIBOL(int sumaActual){
     if (sumaActual > maxSum*2 or sumaActual < 0) return true;
     else return false;
 }
 
-void cambiar(vector<char> &nuevoRes){
-    for(int i=0;i<nuevoRes.size();i++)
-        for(int j=0;j<nuevoRes.size();j++){
-            if(i!=j){
-                if(valores[i+1]==valores[j+1] && (nuevoRes[i]!='?' and nuevoRes[j]!='?')){
-                    nuevoRes[i]='?';
-                    nuevoRes[j]='?';
-                    return;
-                }
-            }
+vector<char> cambiar(vector<char> nuevoRes){
+    int valor=valores[nuevoRes.size()];
+    for(int j=0;j<nuevoRes.size();j++){
+        if(valores[j+1]==valor){
+            nuevoRes[j]='?';
+            break;
         }
+    }
+    nuevoRes[nuevoRes.size()-1]='?';
 }
+
 
 void AFIP2(int i, int sumaActual){
     if(i==valores.size()){
         if(sumaActual==maxSum+precio){
-            if(!dp[i-1][sumaActual/100].empty()) {
+            if(!dp[i][sumaActual/100].empty()) {
                 vector<char> nuevoRes = dp[i-1][sumaActual/100];
-                cambiar(nuevoRes);
                 dp[i][sumaActual/100]=nuevoRes;
                 solActual=dp[i][sumaActual/100];
                 return;
@@ -46,12 +45,9 @@ void AFIP2(int i, int sumaActual){
     }
     else if(!dp[i][sumaActual/100].empty()){
         vector<char> nuevoRes=dp[i][sumaActual/100];
-        cambiar(nuevoRes);
-        dp[i][sumaActual/100]=nuevoRes;
+        dp[i][sumaActual/100]=cambiar(nuevoRes);
         return;
     }
-
-    else if(IMPOSIBOL(sumaActual)) return;
     else{
         if(valores[i]==0){
             vector<char> nuevoCero=dp[i-1][sumaActual/100];
