@@ -9,49 +9,66 @@ vector<int> valores = {};
 vector<char> solActual = {};
 vector<vector<vector<char>>> dp = {};
 
-vector<char> comparoSignos(vector<char> s1, vector<char> s2){
-    vector<char> res=s1;
-    for(int i=0;i<res.size();i++)
-        if (s1[i] != s2[i] && (s1[i] != '?' or s2[i] != '?')){
-            res[i]='?';
-        }
-    return res;
-}
-
 bool IMPOSIBOL(int sumaActual){
     if (sumaActual > maxSum*2 or sumaActual < 0) return true;
     else return false;
 }
 
-void AFIP(int i, int sumaActual, vector<char> resActual){ // sumaActual se inicia como sumaMax, i empieza en 1
-    if(sumaActual==maxSum+precio && valores.size()-1==resActual.size()){
-        if(!dp[i][sumaActual/100].empty()){
-            dp[i][sumaActual/100]=comparoSignos(dp[i][sumaActual/100],resActual);
-        } else{
-            dp[i][sumaActual/100]=resActual;
+void cambiar(vector<char> &nuevoRes){
+    for(int i=0;i<nuevoRes.size();i++)
+        for(int j=0;j<nuevoRes.size();j++){
+            if(i!=j){
+                if(valores[i+1]==valores[j+1] && (nuevoRes[i]!='?' and nuevoRes[j]!='?')){
+                    nuevoRes[i]='?';
+                    nuevoRes[j]='?';
+                    return;
+                }
+            }
         }
-        solActual=dp[i][sumaActual/100];
+}
+
+void AFIP2(int i, int sumaActual){
+    if(i==valores.size()){
+        if(sumaActual==maxSum+precio){
+            if(!dp[i-1][sumaActual/100].empty()) {
+                vector<char> nuevoRes = dp[i-1][sumaActual/100];
+                cambiar(nuevoRes);
+                dp[i][sumaActual/100]=nuevoRes;
+                solActual=dp[i][sumaActual/100];
+                return;
+            }else{
+                dp[i][sumaActual/100]=dp[i-1][sumaActual/100];
+                solActual=dp[i][sumaActual/100];
+                return;
+            }
+        }
+        return;
+    }
+    else if(!dp[i][sumaActual/100].empty()){
+        vector<char> nuevoRes=dp[i][sumaActual/100];
+        cambiar(nuevoRes);
+        dp[i][sumaActual/100]=nuevoRes;
         return;
     }
 
-    else if(resActual.size()==valores.size()-1) return;
     else if(IMPOSIBOL(sumaActual)) return;
-
-    else if(!dp[i][(sumaActual)/100].empty()){
-        comparoSignos(dp[i][(sumaActual)/100],resActual);
-        return;
-    }
-
     else{
+        if(valores[i]==0){
+            vector<char> nuevoCero=dp[i-1][sumaActual/100];
+            nuevoCero.push_back('?');
+            dp[i][sumaActual/100]=nuevoCero;
+            AFIP2(i+1,sumaActual);
+            return;
+        }
         vector<char> nuevoResSuma=dp[i-1][sumaActual/100];
         nuevoResSuma.push_back('+');
         dp[i][(sumaActual+valores[i])/100]=nuevoResSuma;
-        AFIP(i+1,sumaActual+valores[i],nuevoResSuma);
+        AFIP2(i+1,sumaActual+valores[i]);
 
         vector<char> nuevoResResta=dp[i-1][sumaActual/100];
         nuevoResResta.push_back('-');
         dp[i][(sumaActual-valores[i])/100]=nuevoResResta;
-        AFIP(i+1,sumaActual-valores[i],nuevoResResta);
+        AFIP2(i+1,sumaActual-valores[i]);
     }
     return;
 }
@@ -86,7 +103,7 @@ int main(){
 
         dp = dp_nuevo; // dado una suma actual, se indexa en [(sumaActual + maxSum)/100]
 
-        AFIP(1,maxSum,resActual);
+        AFIP2(1,maxSum);
         maxSum = 0;
         results.push_back(solActual);
         solActual = {};
