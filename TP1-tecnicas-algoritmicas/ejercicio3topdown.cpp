@@ -9,6 +9,7 @@ vector<int> valores = {};
 vector<char> solActual = {};
 vector<vector<vector<char>>> dp = {};
 vector<char> solVacia = {};
+vector<char> todoPregunta = {};
 
 vector<char> comparoSignos(vector<char> s1, vector<char> s2){
     int i=0;
@@ -38,36 +39,54 @@ bool IMPOSIBOL(int sumaActual, int sumaRestante){
 
 
 void AFIP(int i, vector<char> resActual, int sumaActual, int sumaRestante){
+    if(solActual == todoPregunta) return; // si solActual es todos '?' no sigo buscando mas soluciones
+
     if(i == valores.size()){
         if(sumaActual == precio){
             if(solActual.empty()) {
                 solActual = resActual;
                 dp[i][(sumaActual + maxSum) / 100] = resActual;
-                return;
             }
             else {
                 vector<char> sol = comparoSignos(resActual, solActual);
                 dp[i][(sumaActual + maxSum) / 100] = sol;
                 solActual = sol;
             }
-            return;
         }
     }
 
-    else if(IMPOSIBOL(sumaActual, sumaRestante)) return;
+   else if(IMPOSIBOL(sumaActual, sumaRestante)) return;
+
+   else if (sumaActual + sumaRestante == precio){
+        for(int j = i; j < valores.size(); j++){
+            if (valores[j] == 0) resActual[j] = '?';
+            else resActual[j] = '+';
+        }
+        AFIP(valores.size(), resActual, precio, 0);
+    }
+    else if(sumaActual - sumaRestante == precio){
+        for(int j = i; j < valores.size(); j++){
+            if (valores[j] == 0) resActual[j] = '?';
+            else resActual[j] = '-';
+        }
+        AFIP(valores.size(), resActual, precio, 0);
+    }
 
     else if (dp[i][(sumaActual+maxSum)/100] != solVacia){
         vector<char> comparado = comparoSignos(dp[i][(sumaActual+maxSum)/100], resActual);
         dp[i][(sumaActual+maxSum)/100] = comparado;
-        return;
     }
 
     else{
+        if(valores[i] == 0){
+            resActual[i] = '?';
+            AFIP(i+1, resActual, sumaActual, sumaRestante);
+            return;
+        }
+
         resActual[i] = '+';
         AFIP(i+1, resActual, sumaActual + valores[i], sumaRestante - valores[i]);
         dp[i][((sumaActual+valores[i])+maxSum)/100] = resActual;
-
-        //dp[i][((sumaActual+valores[i])+maxSum)/100] = resActual
 
         resActual[i] = '-';
         AFIP(i+1, resActual, sumaActual - valores[i], sumaRestante - valores[i]);
@@ -99,13 +118,14 @@ int main(){
         vector<char> resActual(valores.size(),'A');
 
         solVacia = resActual;
-
+        vector<char> todoPregunta_nuevo(valores.size(), '?');
+        todoPregunta = todoPregunta_nuevo;
 
         for (int n : valores){
             maxSum += n;
         }
 
-        vector<vector<vector<char>>> dp_nuevo (valores.size()+1, vector<vector<char>>(((2*maxSum) / 100)+1, solVacia));
+        vector<vector<vector<char>>> dp_nuevo (valores.size()+1, vector<vector<char>>(((2*maxSum) /100)+1, solVacia));
         dp = dp_nuevo; // dado una suma actual, se indexa en [(sumaActual + maxSum)/100]
 
         AFIP(0,resActual,0,sumaTotal);
