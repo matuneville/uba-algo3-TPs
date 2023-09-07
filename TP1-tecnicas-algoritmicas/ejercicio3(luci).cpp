@@ -9,30 +9,35 @@ int sumaRestante=0;
 
 bool IMPOSIBOL(int sumaActual, int sumaRestante){
     bool res=false;
-    if(sumaRestante>0){
-        if(sumaActual-sumaRestante > precioPoda)
+    if(sumaActual==0) return res;
+
+    else if(sumaActual<0){
+        if(sumaActual+sumaRestante<0){
             res=true;
-    }
-    else{
-        if (sumaActual+sumaRestante < precioPoda)
+        }
+    } else{
+        if(sumaActual-sumaRestante>0){
             res=true;
+        }
     }
     return res;
 }
 
-bool   puedoMas(vector<pair<int,int>> valores, int precio, int iBorrar,int indice, int sumaRestante){
-    if(precio == 0 && indice == valores.size()) {
+bool   puedoMas(vector<pair<int,int>>& valores, int precioActual, int iBorrar,int indice, int sumaRestante){
+    if(precioActual == 0 && indice == valores.size()) {
         return true;
     }
-    else if(precio != 0 && indice == valores.size()) {
+    else if(precioActual != 0 && indice == valores.size()) {
         return false;
     }
-    else if(IMPOSIBOL(precio, sumaRestante)) return false;
+    else if(IMPOSIBOL(precioActual, sumaRestante) && valores[indice].first!=0){
+        return false;
+    }
     if(indice != iBorrar){
-        return puedoMas(valores, precio + valores[indice].first,iBorrar,indice+1,sumaRestante+valores[indice].first) or puedoMas(valores, precio - valores[indice].first,iBorrar,indice+1,sumaRestante-valores[indice].first);
+        return puedoMas(valores, precioActual + valores[indice].first,iBorrar,indice+1,sumaRestante-valores[indice].first) or puedoMas(valores, precioActual - valores[indice].first,iBorrar,indice+1,sumaRestante-valores[indice].first);
     }
     else{
-        return puedoMas(valores, precio ,iBorrar,indice+1,sumaRestante+valores[indice].first) or puedoMas(valores, precio ,iBorrar,indice+1,sumaRestante-valores[indice].first);
+        return puedoMas(valores, precioActual ,iBorrar,indice+1,sumaRestante) or puedoMas(valores, precioActual ,iBorrar,indice+1,sumaRestante);
     }
 }
 
@@ -41,8 +46,8 @@ bool   puedoMas(vector<pair<int,int>> valores, int precio, int iBorrar,int indic
 vector<char> AFIP(int precio){
     vector<pair<char,int>> res (valoresG.size(), make_pair('A',0));
     for(int i = 0; i < valoresG.size(); i++){
-        bool mas = puedoMas(valoresG, precio - valoresG[i].first, i, 0, sumaRestante);
-        bool menos = puedoMas(valoresG, precio + valoresG[i].first, i, 0,sumaRestante);
+        bool mas = puedoMas(valoresG, precio - valoresG[i].first, i, 0, sumaRestante-valoresG[i].first);
+        bool menos = puedoMas(valoresG, precio + valoresG[i].first, i, 0,sumaRestante-valoresG[i].first);
         if(mas && menos)
             res[i] = make_pair('?',valoresG[i].second);
         else if(mas)
