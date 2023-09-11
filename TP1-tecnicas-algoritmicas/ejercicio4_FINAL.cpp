@@ -11,62 +11,62 @@ int costo=0;
 
 vector<int> solParcial;
 
+int Kproovs;
+
 vector<int> chori;
 vector<int> prov(cantProv, -1);
 vector<vector<int>> dp;
 
 
+int distMinimasEntre(int iPrev, int iActual, int provsRestantes){ // funciona para k > 1
+    int res = 0;
 
-int distMinimasEntre(int begin, int end){
-    int res=0;
-    for(int i=begin;i<=end;i++){
-        int dist1 = abs(chori[begin] - chori[i]);
-        int dist2 = abs(chori[end] - chori[i]);
-        if(dist1 <= dist2){
-            res += dist1;
-        } else{
-            res += dist2;
-        }
+    int end = iActual, begin = iPrev;
+
+    if(provsRestantes == Kproovs)
+        begin = 1;
+
+    if(provsRestantes == 1)
+        end = chori.size();
+
+    for (int i = begin; i < end; i++) {
+        int dist1 = abs(chori[iPrev] - chori[i]);
+        int dist2 = abs(chori[iActual] - chori[i]);
+
+        res += min(dist1, dist2);
     }
+
     return res;
 }
 
 
-int costoMinimo(int ultProv, int provsRestantes, int begin){
-    // caso base
+int costoMinimo(int iActual, int iPrev, int provsRestantes){
+
     if(provsRestantes == 0)
         return 0;
 
-    else if(begin == chori.size())
+    else if(iActual == chori.size())
         return inf;
 
+    int pongoProv = costoMinimo(iActual+1, iActual, provsRestantes-1);
+    pongoProv += distMinimasEntre(iPrev, iActual, provsRestantes);
 
-    for(int i = begin; i < chori.size(); i++){
-        int minActual;
+    int noPongoProv = costoMinimo(iActual+1, iPrev, provsRestantes);
 
-        minActual = costoMinimo(chori[i], provsRestantes-1, i+1);
-        if(provsRestantes == 1) {
-            int minActual=distMinimasEntre(0, chori.size());
-            dp[ultProv][provsRestantes]=minActual;
-        }
-        else if(dp[ultProv][provsRestantes] != -1){
-            dp[ultProv][provsRestantes] = min(inf, minActual + distMinimasEntre(begin,i));
-        } else {
-            dp[ultProv][provsRestantes] = minActual + distMinimasEntre(begin,i);
-        }
-    }
-    return dp[ultProv][provsRestantes];
+    int res = min(pongoProv, noPongoProv);
+
+    return res;
 }
 
-
 int main(){
-    vector<int> puesto = {5, 10, 15};
-    int k = 1;
+    vector<int> puesto = {inf};
+    int k = 6;
+    Kproovs = k;
+
     chori = puesto;
     vector<vector<int>> s (puesto[puesto.size()-1]+1,vector<int>(k+1,-1));
-    dp = s;
+    //dp = s;
 
-
-    int res = costoMinimo(0,k, 0);
+    int res = costoMinimo(1, 0, k);
     cout << res << endl;
 }
