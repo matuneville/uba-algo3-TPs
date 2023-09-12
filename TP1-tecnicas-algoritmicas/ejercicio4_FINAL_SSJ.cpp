@@ -15,7 +15,7 @@ int Kproovs;
 
 vector<int> chori;
 vector<int> prov(cantProv, -1);
-vector<vector<int>> dp{};
+vector<vector<vector<int>>> dp{};
 
 
 int distMinimasEntre(int iPrev, int iActual, int provsRestantes){ // funciona para k > 1
@@ -44,23 +44,23 @@ int costoMinimo(int iActual, int iPrev, int provsRestantes){
     if(provsRestantes == 0)
         return 0;
 
-    else if(provsRestantes >= chori.size() - iActual)
+    else if(provsRestantes > chori.size() - iActual)
         return inf;
 
     int res;
 
-    if(dp[iActual][provsRestantes] != -1){
-        return dp[iActual][provsRestantes];
+    if(dp[provsRestantes][iActual][iPrev] != -1){
+        return dp[provsRestantes][iActual][iPrev];
     }
+
     int pongoProv = costoMinimo(iActual+1, iActual, provsRestantes-1);
     pongoProv += distMinimasEntre(iPrev, iActual, provsRestantes);
-    dp[iActual][provsRestantes] = pongoProv;
 
     int noPongoProv = costoMinimo(iActual+1, iPrev, provsRestantes);
 
     res = min(pongoProv, noPongoProv);
 
-    return res;
+    return (dp[provsRestantes][iActual][iPrev] = res);
 }
 
 int main(){
@@ -87,20 +87,21 @@ int main(){
             chori[j] = puesto;
         }
 
-        vector<vector<int>> memo (chori.size()+1,vector<int>(cantProv+1,-1));
+        // N x N x K
+        vector<vector<vector<int>>> memo(cantProv+1, vector<vector<int>>(chori.size()+1,vector<int>(chori.size()+1, -1)));
         dp = memo;
 
         int res = costoMinimo(1,0,cantProv);
         int j = cantProv;
         int k = 0;
-        for(int s = 0; s < chori.size(); s++){
+        /*for(int s = 0; s < chori.size(); s++){
             if(j <= 0) break;
-            if(chori[s] != inf && dp[s][j] == res){
+            if(chori[s] != inf && dp[s][j] == res){   // aca es donde obtenemos los puestos
                 prov[k] = chori[s];
                 k++;
                 j--;
             }
-        }
+        }*/
         dp = {};
         results.push_back(prov);
         resCostos.push_back(res);

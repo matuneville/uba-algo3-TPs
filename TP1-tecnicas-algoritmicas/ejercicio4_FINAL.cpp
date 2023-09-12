@@ -59,8 +59,8 @@ int costoMinimo(int iActual, int iPrev, int provsRestantes){
 }
 
 int main(){
-    vector<int> puesto = {inf};
-    int k = 6;
+    vector<int> puesto = {inf, 1, 2, 3, 700, 701, 702, 750, 890, 891, 19000};
+    int k = 4;
     Kproovs = k;
 
     chori = puesto;
