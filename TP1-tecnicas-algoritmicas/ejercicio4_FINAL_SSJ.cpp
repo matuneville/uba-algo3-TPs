@@ -17,6 +17,7 @@ vector<int> chori;
 vector<int> prov(cantProv, -1);
 vector<vector<vector<int>>> dp{};
 
+int distanciaSol;
 
 int distMinimasEntre(int iPrev, int iActual, int provsRestantes){ // funciona para k > 1
     int res = 0;
@@ -36,6 +37,52 @@ int distMinimasEntre(int iPrev, int iActual, int provsRestantes){ // funciona pa
         res += min(dist1, dist2);
     }
     return res;
+}
+
+
+void menorLexi(vector<int> solActual){
+    for(int i = 0; i < solActual.size(); i++){
+        if(solActual[i] < solParcial[i]){
+            solParcial = solActual;
+            return;
+        }
+    }
+}
+
+
+void locacionProvedurias(int iActual, int iPrev, int K, vector<int> solActual) {
+    if(K == 0){
+        if(solParcial[0] == -1 && dp[Kproovs][solActual[0]][0] == distanciaSol) // como siempre hay solucion da igual si esta era o no una solucion de la distancia
+            solParcial = solActual;
+        else {
+            if(dp[Kproovs][solActual[0]][0] == distanciaSol)
+                menorLexi(solActual);
+        }
+        return;
+    }
+
+
+    else if(iActual == chori.size()-1){
+        /* que pasa acá? */
+        return;
+    }
+
+    int no_pongo = dp[K][iActual][iPrev];
+    int si_pongo = dp[K-1][iActual][iActual] + distMinimasEntre(iPrev, iActual, K);
+
+    if(no_pongo < si_pongo)
+        locacionProvedurias(iActual+1, iPrev, K, solActual);
+
+    else if(no_pongo > si_pongo) {
+        solActual[Kproovs - K] = chori[iActual];
+        locacionProvedurias(iActual+1,iActual,K-1,solActual);
+    }
+
+    else{ // caso iguales
+        locacionProvedurias(iActual+1, iPrev, K, solActual);
+        solActual[Kproovs - K] = chori[iActual];
+        locacionProvedurias(iActual+1,iActual,K-1,solActual);
+    }
 }
 
 
@@ -74,6 +121,8 @@ int main(){
         cin >> cantPuesto;
         cin >> cantProv;
 
+        Kproovs = cantProv;
+
         vector<int> provi(cantProv,-1);
         prov = provi;
 
@@ -91,20 +140,20 @@ int main(){
         vector<vector<vector<int>>> memo(cantProv+1, vector<vector<int>>(chori.size()+1,vector<int>(chori.size()+1, -1)));
         dp = memo;
 
-        int res = costoMinimo(1,0,cantProv);
-        int j = cantProv;
-        int k = 0;
-        /*for(int s = 0; s < chori.size(); s++){
-            if(j <= 0) break;
-            if(chori[s] != inf && dp[s][j] == res){   // aca es donde obtenemos los puestos
-                prov[k] = chori[s];
-                k++;
-                j--;
-            }
-        }*/
+        distanciaSol = costoMinimo(1,0,cantProv);
+
+        /*   ACA VA LA NUEVA FUNCION     */
+        vector<int> nuevaSol(cantProv, -1);
+        solParcial=nuevaSol;
+
+
+
+        locacionProvedurias(1,0,Kproovs,nuevaSol);
+
         dp = {};
-        results.push_back(prov);
-        resCostos.push_back(res);
+        //
+        results.push_back(solParcial);
+        resCostos.push_back(distanciaSol);
     }
 
     for(int i = 0; i < tests;i++){
