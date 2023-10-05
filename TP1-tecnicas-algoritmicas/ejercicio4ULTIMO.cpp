@@ -66,8 +66,6 @@ void locacionProvedurias(int iActual, int iPrev, int K, vector<int> solActual) {
 }
 
 
-
-
 int costoMinimo(int iActual, int iPrev, int provsRestantes){
 
     if(provsRestantes == 0)
@@ -91,6 +89,7 @@ int costoMinimo(int iActual, int iPrev, int provsRestantes){
 
     return (dp[provsRestantes][iActual][iPrev] = res);
 }
+
 
 int main(){
     int tests;
@@ -118,22 +117,32 @@ int main(){
             chori[j] = puesto;
         }
 
-        // N x N x K
-        vector<vector<vector<int>>> memo(cantProv+1, vector<vector<int>>(chori.size()+1,vector<int>(chori.size()+1, -1)));
-        dp = memo;
+        if(cantProv == 1){ // caso especial para cuando K = 1
+            distanciaSol = distMinimasEntre(0, 1, 1);
+            for (int j = 1; j < chori.size(); ++j) {
+                if(distMinimasEntre(0, j, 1) < distanciaSol) {
+                    distanciaSol = distMinimasEntre(0, j, 1);
+                    solParcial = {chori[j]};
+                }
+            }
+        }
 
-        distanciaSol = costoMinimo(1,0,cantProv);
+        else{   // matriz memo de N x N x K
 
-        /*   ACA VA LA NUEVA FUNCION     */
-        vector<int> nuevaSol(cantProv, -1);
-        solParcial=nuevaSol;
+            vector<vector<vector<int>>> memo(cantProv + 1,vector<vector<int>>(chori.size() + 1, vector<int>(chori.size() + 1, -1)));
+            dp = memo;
+
+            distanciaSol = costoMinimo(1, 0, cantProv);
+
+            vector<int> nuevaSol(cantProv, -1);
+            solParcial = nuevaSol;
 
 
-
-        locacionProvedurias(1,0,Kproovs,nuevaSol);
+            locacionProvedurias(1, 0, Kproovs, nuevaSol);
+        }
 
         dp = {};
-        //
+
         results.push_back(solParcial);
         resCostos.push_back(distanciaSol);
     }
