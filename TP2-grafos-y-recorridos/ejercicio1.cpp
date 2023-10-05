@@ -101,7 +101,6 @@ int main() {
 
     int tests;
     cin >> tests;
-
     vector<set<pair<int,int>>> todasLasImportantes;
 
     for (int i = 0; i < tests; ++i) {
