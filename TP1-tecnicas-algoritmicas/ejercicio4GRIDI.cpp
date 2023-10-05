@@ -142,9 +142,13 @@ int main(){
 
             locacionProvedurias(1,0,Kproovs,nuevaSol);
         }
+<<<<<<< HEAD
 
 
 
+=======
+        
+>>>>>>> a1655089d404ffaa7245640afe141c3be41cb20b
         dp = {};
         //
         results.push_back(solParcial);
@@ -163,4 +167,8 @@ int main(){
     }
 
     return 0;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a1655089d404ffaa7245640afe141c3be41cb20b

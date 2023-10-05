@@ -19,6 +19,7 @@ vector<int> back_edges_con_extremo_inferior_en;
 vector<int> back_edges_con_extremo_superior_en;
 
 vector<vector<bool>> elimine;
+vector<int> padre;
 
 void dfs(int v, int p = -1) {
     estado[v] = EMPECE_A_VER;
@@ -27,12 +28,12 @@ void dfs(int v, int p = -1) {
             continue;
         if (estado[u] == NO_LO_VI) {
             tree_edges[v].push_back(u);
+            padre[u]=v;
             dfs(u, v);
         }
-        else if (u != p) {
+        else if (u != padre[v]) {
             if (estado[u] == EMPECE_A_VER) {
-                back_edges_con_extremo_superior_en[u]++;
-                back_edges_con_extremo_inferior_en[v]++;
+                back_edges_con_extremo_superior_en[v]++;
             }
             else // estado[u] == TERMINE_DE_VER
                 back_edges_con_extremo_inferior_en[v]++;
@@ -49,17 +50,17 @@ int cubren(int v, int p) {
             res += cubren(hijo, v);
         }
     }
-    res -= back_edges_con_extremo_superior_en[v];
-    res += back_edges_con_extremo_inferior_en[v];
+    res += back_edges_con_extremo_superior_en[v];
+    res -= back_edges_con_extremo_inferior_en[v];
     memo[v] = res;
     return res;
 }
 
 bool existePuente(){
-    bool res=true;
+    bool res=false;
     for(int i = 1; i < n; i++){
         if (memo[i] == 0) {
-            res = false;
+            res = true;
             break;
         }
     }
@@ -74,11 +75,14 @@ void hallarImportantes(){
             elimine[elem_j][i] = true;
 
             estado.assign(n, NO_LO_VI);
+            padre.assign(n,-1);
             tree_edges.assign(n, {});
             back_edges_con_extremo_inferior_en.assign(n, 0);
             back_edges_con_extremo_superior_en.assign(n, 0);
 
             dfs(0,-1);
+
+            memo.assign(n,-1);
             cubren(0,-1);
             if(existePuente()){
                 pair<int, int> aristaImp = make_pair(i, elem_j);
@@ -98,13 +102,15 @@ int main() {
     int tests;
     cin >> tests;
 
+    vector<set<pair<int,int>>> todasLasImportantes;
+
     for (int i = 0; i < tests; ++i) {
         cin >> n >> m;
 
         aristas.assign(n, {});
         for (int j = 0; j < m; ++j) {
             int v, w;
-            cin >> v >> w;
+            cin >> v >> w ;
             aristas[v].push_back(w);
             aristas[w].push_back(v);
         }
@@ -117,24 +123,20 @@ int main() {
         back_edges_con_extremo_superior_en.assign(n, 0);
         hallarImportantes();
 
-        cout << importantes.size()<< endl;
-        for(pair<int,int> arist : importantes){
+        todasLasImportantes.push_back(importantes);
+
+        importantes={};
+    }
+    for (int i = 0; i < tests; ++i){
+        cout << todasLasImportantes[i].size() << endl;
+        for(pair<int,int> arist : todasLasImportantes[i]){
             cout << arist.first << " " << arist.second << endl;
         }
-        cout << endl;
-
     }
 
     return 0;
 }
 
-/*
-1
-3 3
-0 1
-0 2
-2 1
- * */
 
 // ⢀⡴⠑⡄⠀⠀⠀⠀⠀⠀⠀⣀⣀⣤⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 //⠸⡇⠀⠿⡀⠀⠀⠀⣀⡴⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
