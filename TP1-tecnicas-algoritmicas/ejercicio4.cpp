@@ -1,82 +1,94 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <cmath>
 
 using namespace std;
+
+const int inf = 1e9;
 
 int cantProv;
 int costo=0;
 
 vector<int> solParcial;
 
+int Kproovs;
+
 vector<int> chori;
-vector<int> prov(cantProv, -1); // global, finalllllll
+vector<int> prov(cantProv, -1);
+vector<vector<vector<int>>> dp{};
 
+int distanciaSol;
 
-int provedMasCercana(int n, vector<int>& proved){
-    int distanciaMin=abs(n-proved[0]);
+int distMinimasEntre(int iPrev, int iActual, int provsRestantes){ // funciona para k > 1
+    int res = 0;
 
-    for(int i=0;i<proved.size();i++){
-        int distanciaActual=abs(n-proved[i]);
-        if(distanciaActual<distanciaMin){
-            distanciaMin=distanciaActual;
-        }
-    }
-    //qe pasa perkin//  esta bien // ta lista
-    return distanciaMin;
-}
+    int end = iActual, begin = iPrev;
 
-int calcularCosto(vector<int>& proved){
-    int res=0;
-    for(int n: chori){
-        int k = provedMasCercana(n,proved);
-        res+=k;
+    if(provsRestantes == Kproovs) // para contar los de la izquierda de primer prov
+        begin = 1;
+
+    if(provsRestantes == 1) // para contar los de la derecha de ultimo prov
+        end = chori.size();
+
+    for (int i = begin; i < end; i++) {
+        int dist1 = abs(chori[iPrev] - chori[i]);
+        int dist2 = abs(chori[iActual] - chori[i]);
+
+        res += min(dist1, dist2);
     }
     return res;
 }
 
-bool menorLexicParcial(){ // true si solParcial menor que prov
-    for(int i = 0; i != solParcial.size(); i++){
-        if(solParcial[i] < prov[i]){
-            return true;
+
+void locacionProvedurias(int iActual, int iPrev, int K, vector<int> solActual) {
+
+    while(K>0){
+        int no_pongo = dp[K][iActual+1][iPrev];
+        int si_pongo = dp[K-1][iActual+1][iActual] + distMinimasEntre(iPrev, iActual, K);
+
+        if(no_pongo == -1){
+            no_pongo = inf;
+        }
+        if(si_pongo == -1){
+            si_pongo = inf;
+        }
+        if(no_pongo >= si_pongo){
+            solActual[Kproovs - K] = chori[iActual];
+            iPrev = iActual;
+            iActual++;
+            K--;
+        }
+        else{
+            iActual++;
         }
     }
-    return false;
+    solParcial = solActual;
 }
 
 
-void choripanes(int iChori, int iProv){
 
-    if(cantProv - iProv  > chori.size() - iChori) // no tiene solucion
-        return;
+int costoMinimo(int iActual, int iPrev, int provsRestantes){
 
-    else if(iProv == cantProv) {
-        // analizar solParcial y sol Actual !
-        if(prov[0] != -1){
-            if (calcularCosto(solParcial) < calcularCosto(prov)) { // O(n²)
-                prov = solParcial;// O(n)
-                costo = calcularCosto(prov);
-            } else if (calcularCosto(solParcial) == calcularCosto(prov)) {
-                if (menorLexicParcial()) {
-                    prov = solParcial;
-                    costo = calcularCosto(prov);
-                }
-            }
-        } else{
-            prov=solParcial;
-            costo = calcularCosto(prov);
-        }
+    if(provsRestantes == 0)
+        return 0;
+
+    else if(provsRestantes > chori.size() - iActual)
+        return inf;
+
+    int res;
+
+    if(dp[provsRestantes][iActual][iPrev] != -1){
+        return dp[provsRestantes][iActual][iPrev];
     }
-    else {
-        // la pongo
-        solParcial[iProv] = chori[iChori];
-        choripanes(iChori+1,iProv+1);
 
-        // no la pongo (nunca la pongo)
-        solParcial[iProv] = -1;
-        choripanes(iChori+1,iProv);
-    }
+    int pongoProv = costoMinimo(iActual+1, iActual, provsRestantes-1);
+    pongoProv += distMinimasEntre(iPrev, iActual, provsRestantes);
+
+    int noPongoProv = costoMinimo(iActual+1, iPrev, provsRestantes);
+
+    res = min(pongoProv, noPongoProv);
+
+    return (dp[provsRestantes][iActual][iPrev] = res);
 }
 
 
@@ -90,21 +102,57 @@ int main(){
         int cantPuesto;
         cin >> cantPuesto;
         cin >> cantProv;
+
+        Kproovs = cantProv;
+
         vector<int> provi(cantProv,-1);
         prov = provi;
-        solParcial = provi;
-        vector<int> choriNuevo(cantPuesto,0);
+
+        vector<int> choriNuevo(cantPuesto+1,0);
         chori = choriNuevo;
-        for (int j = 0; j < cantPuesto; ++j) {
+        chori[0] = inf;
+
+        for (int j = 1; j < cantPuesto+1; ++j) {
             int puesto=0;
             cin >> puesto;
-            chori[j]=puesto;
+            chori[j] = puesto;
         }
 
-        choripanes(0,0);
+        vector<int> nuevaSol(cantProv, -1);
+        solParcial=nuevaSol;
 
-        results.push_back(prov);
-        resCostos.push_back(costo);
+        if(cantProv == 1){ // caso especial para cuando K = 1
+            distanciaSol = distMinimasEntre(0, 1, 1);
+            for (int j = 1; j < chori.size(); ++j) {
+                if(distMinimasEntre(0, j, 1) < distanciaSol) {
+                    distanciaSol = distMinimasEntre(0, j, 1);
+                    solParcial = {chori[j]};
+                }
+            }
+        }
+
+        else{
+            // N x N x K
+            vector<vector<vector<int>>> memo(cantProv+1, vector<vector<int>>(chori.size()+1,vector<int>(chori.size()+1, -1)));
+            dp = memo;
+
+            distanciaSol = costoMinimo(1,0,cantProv);
+
+            /*   ACA VA LA NUEVA FUNCION     */
+
+            locacionProvedurias(1,0,Kproovs,nuevaSol);
+        }
+<<<<<<< HEAD
+
+
+
+=======
+        
+>>>>>>> a1655089d404ffaa7245640afe141c3be41cb20b
+        dp = {};
+        //
+        results.push_back(solParcial);
+        resCostos.push_back(distanciaSol);
     }
 
     for(int i = 0; i < tests;i++){
@@ -119,4 +167,8 @@ int main(){
     }
 
     return 0;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a1655089d404ffaa7245640afe141c3be41cb20b
