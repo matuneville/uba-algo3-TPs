@@ -65,6 +65,16 @@ void locacionProvedurias(int iActual, int iPrev, int K, vector<int> solActual) {
     solParcial = solActual;
 }
 
+bool esConsecutivo(vector<int> chori){
+    bool res = true;
+    for(int i=1;i<chori.size()-1;i++){
+        if(chori[i]!=chori[i+1]-1){
+            res=false;
+            break;
+        }
+    }
+    return res;
+}
 
 
 int costoMinimo(int iActual, int iPrev, int provsRestantes){
@@ -90,7 +100,6 @@ int costoMinimo(int iActual, int iPrev, int provsRestantes){
 
     return (dp[provsRestantes][iActual][iPrev] = res);
 }
-
 
 int main(){
     int tests;
@@ -121,16 +130,10 @@ int main(){
         vector<int> nuevaSol(cantProv, -1);
         solParcial=nuevaSol;
 
-        if(cantProv == 1){ // caso especial para cuando K = 1
-            distanciaSol = distMinimasEntre(0, 1, 1);
-            for (int j = 1; j < chori.size(); ++j) {
-                if(distMinimasEntre(0, j, 1) < distanciaSol) {
-                    distanciaSol = distMinimasEntre(0, j, 1);
-                    solParcial = {chori[j]};
-                }
-            }
+        if(esConsecutivo(chori) && cantProv==1){
+            distanciaSol= distMinimasEntre(chori.size()/2,chori.size()/2,1);
+            solParcial={chori[chori.size()/2]};
         }
-
         else{
             // N x N x K
             vector<vector<vector<int>>> memo(cantProv+1, vector<vector<int>>(chori.size()+1,vector<int>(chori.size()+1, -1)));
@@ -142,13 +145,7 @@ int main(){
 
             locacionProvedurias(1,0,Kproovs,nuevaSol);
         }
-<<<<<<< HEAD
 
-
-
-=======
-        
->>>>>>> a1655089d404ffaa7245640afe141c3be41cb20b
         dp = {};
         //
         results.push_back(solParcial);
@@ -167,8 +164,4 @@ int main(){
     }
 
     return 0;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> a1655089d404ffaa7245640afe141c3be41cb20b
