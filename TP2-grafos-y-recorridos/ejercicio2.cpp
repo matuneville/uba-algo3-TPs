@@ -4,41 +4,31 @@
 using namespace std;
 
 
-struct vertice {
-    int x;
-    int y;
-    int d;
-
-    vertice(int x, int y, int d) : x(x), y(y), d(d) {}
-};
+typedef pair<int,int> vertice;
 
 int n;
 int m;
 int inf = 1e9;
 
 // X     Y     D        vecinos
-vector<vector<vector<vector<vertice>>>> grafo;
-vector<vector<vector<bool>>> visitado;
-vector<vector<vector<int>>> distancia;
-pair<int,int> posInicial;
-pair<int,int> posFinal;
+vector<vector<vector<vertice>>> grafo;
+vector<vector<bool>> visitado;
+vector<vector<int>> distancia;
+vertice posInicial;
+vertice posFinal;
 int dx[] = {-1, 1, 0, 0}; // las cuatro direcciones a las que se puede ir
 int dy[] = {0, 0, -1, 1};
 vector<vector<int>> matriz;
 
 
-void crearGrafo() { // O(m*n*k)
+void crearGrafo() { // O(m*n*n*m)
     for (int x = 0; x < n; ++x) {
         for (int y = 0; y < m; ++y) {
-            for (int d = 0; d < n * m; ++d) {
-                for (int i = 0; i < 4; ++i) {
-                    int nuevoX = x + dx[i];
-                    int nuevoY = y + dy[i];
-                    if (nuevoX >= 0 && nuevoX < n && nuevoY >= 0 && nuevoY < m) {
-                        if (d+1 < matriz[nuevoX][nuevoY]) {
-                            grafo[x][y][d].push_back(vertice(nuevoX, nuevoY, d+1));
-                        }
-                    }
+            for (int i = 0; i < 4; ++i) {
+                int nuevoX = x + dx[i];
+                int nuevoY = y + dy[i];
+                if (nuevoX >= 0 && nuevoX < n && nuevoY >= 0 && nuevoY < m) {
+                    grafo[x][y].push_back(vertice(nuevoX, nuevoY));
                 }
             }
         }
@@ -46,19 +36,19 @@ void crearGrafo() { // O(m*n*k)
 }
 
 int bfs(vertice s) {
-    visitado[s.x][s.y][s.d] = true;
+    visitado[s.first][s.second] = true;
     queue<pair<vertice,int>> q;
     q.push({s,0});
     while (!q.empty()) {
         pair<vertice,int> v = q.front();
         q.pop();
-        for (auto u : grafo[v.first.x][v.first.y][v.first.d]) {
-            if (!visitado[u.x][u.y][u.d]) {
-                visitado[u.x][u.y][u.d] = true;
-                distancia[u.x][u.y][u.d] = distancia[v.first.x][v.first.y][v.first.d] + 1;
-                int dist = distancia[u.x][u.y][u.d];
+        for (auto u : grafo[v.first.first][v.first.second]) {
+            if (!visitado[u.first][u.second] && !(distancia[v.first.first][v.first.second] + 1 >= matriz[u.first][u.second])) {
+                visitado[u.first][u.second] = true;
+                distancia[u.first][u.second] = distancia[v.first.first][v.first.second] + 1;
+                int dist = distancia[u.first][u.second];
                 q.push({u,dist});
-                if( posFinal.first == u.x and posFinal.second == u.y)
+                if( posFinal.first == u.first and posFinal.second == u.second)
                     return dist;
             }
         }
@@ -71,14 +61,14 @@ int main(){
     int tests;
     cin>> tests;
 
-    vector<pair<int,int>> output(tests, {-1,-1});
+    vector<vertice> output(tests, {-1,-1});
 
     for (int i = 0; i < tests; ++i) {
 
         cin >> n >> m;
 
         matriz.assign(n, vector<int>(m, inf));
-        grafo.assign(n, vector<vector<vector<vertice>>>(m, vector<vector<vertice>>(n*m)));
+        grafo.assign(n, vector<vector<vertice>>(m));
 
         for (int k = 0; k < n; ++k) {
             for (int j = 0; j < m; ++j) {
@@ -90,41 +80,27 @@ int main(){
 
         int inicio1, inicio2;
         cin >> inicio1 >> inicio2;
-        pair<int,int> inicio = {inicio1, inicio2};
+        vertice inicio = {inicio1, inicio2};
 
         int fin1, fin2;
         cin >> fin1 >> fin2;
-        pair<int,int> fin = {fin1, fin2};
+        vertice fin = {fin1, fin2};
 
         if (inicio == fin){
-            pair<int,int> res = {0, 0};
+            vertice res = {0, 0};
             output[i] = res;
             continue;
         }
 
-        posInicial = inicio;
-        posFinal = fin;
+        posInicial = vertice(inicio.first,inicio.second);
+        posFinal = vertice(fin.first,fin.second);
         crearGrafo();
 
-        visitado.assign(n, vector<vector<bool>>(m, vector<bool>(n*m,false)));
+        visitado.assign(n, vector<bool>(m));
 
-        // ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ########
-        // ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ########
+        distancia.assign(n,vector<int>(m, 0));
 
-                        // esta shit no anda,
-                        // explota toda la memoria cuando utilizo vector distancia en el 2do test
-
-                        distancia.clear();
-
-                        vector<int> d1(n*m,0);
-                        vector<vector<int>> d2(m, d1);
-                        vector<vector<vector<int>>> d3(n, d2);
-                        distancia = d3;
-
-        // ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ########
-        // ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ######## ########
-
-        int res1 = bfs({posInicial.first, posInicial.second, 0});
+        int res1 = bfs(posInicial);
 
         if(res1 == -1)
             continue;
@@ -132,16 +108,16 @@ int main(){
         posInicial = fin;
         posFinal = inicio;
 
-        visitado.assign(n, vector<vector<bool>>(m, vector<bool>(n*m,false)));
+        visitado.assign(n, vector<bool>(m, false));
 
-        distancia.assign(n, d2);
 
-        int res2 = bfs({posInicial.first, posInicial.second, res1});
+
+        int res2 = bfs(posInicial);
 
         if(res2 == -1)
             continue;
 
-        pair<int,int> res = {res1, res1+res2};
+        pair<int,int> res = {res1, res2};
         output[i] = res;
     }
 
@@ -150,5 +126,7 @@ int main(){
             cout << "IMPOSIBLE" << endl;
         else cout << output[i].first << " " << output[i].second << endl;
     }
+
+    return 0;
 
 }
