@@ -3,14 +3,13 @@
 #include "iostream"
 using namespace std;
 
-
 typedef pair<int,int> vertice;
 
 int n;
 int m;
 int inf = 1e9;
 
-// X     Y     D        vecinos
+// X     Y       vecinos
 vector<vector<vector<vertice>>> grafo;
 vector<vector<bool>> visitado;
 vector<vector<int>> distancia;
@@ -97,23 +96,17 @@ int main(){
         crearGrafo();
 
         visitado.assign(n, vector<bool>(m));
-
         distancia.assign(n,vector<int>(m, 0));
 
         int res1 = bfs(posInicial);
-
         if(res1 == -1)
             continue;
 
         posInicial = fin;
         posFinal = inicio;
-
         visitado.assign(n, vector<bool>(m, false));
 
-
-
         int res2 = bfs(posInicial);
-
         if(res2 == -1)
             continue;
 
