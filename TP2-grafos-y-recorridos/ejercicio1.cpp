@@ -67,7 +67,7 @@ bool existePuente(){
 }
 
 void hallarImportantes(){
-    for (int i = 0; i < n; ++i){ 
+    for (int i = 0; i < n; ++i){
         for (int j = 0; j < aristas[i].size(); j++){
             int elem_j = aristas[i][j];
             elimine[i][elem_j] = true;
