@@ -8,12 +8,17 @@ using namespace std;
 matriz lat;
 matriz dist;
 matriz ady;
-
 int n;
 
+/* Pseudocódigo a replicar:
+ *
+ *  para cada (k = 1 ... n)             // por cada vertice vemos:
+ *      para cada (i = 1 ... n)
+ *          para cada (j = 1 ... n)             // para cada par de vertices i,j
+ *              if not (lat[i][j] <= lat[i][k] + lat[k][j]) return IMPOSIBLE
+ * */
 
-bool check_floyd_warshall(){
-
+bool check_floyd_warshall(){    // chequea si la matriz de latencias es una "matriz Floyd-Warshall" (como el ej13 de la guia)
     for(int k = 1; k <= n; k++)
         for(int i = 1; i <= n; i++)
             for(int j = 1; j <= n; j++)
@@ -23,31 +28,20 @@ bool check_floyd_warshall(){
 }
 
 
-void quitar_innecesarias(){
-
+void quitar_innecesarias(){     // para tener la mínima cantidad de aristas necesarias
     for(int i = 1; i <= n; i++)
         for(int j = 1; j <= n; j++)
             for(int k = 1; k <= n; k++)
                 if (lat[i][j] == lat[i][k] + lat[k][j] and k!=i and k!=j)
                     ady[i][j] = 0;
-
 }
 
-/*
- *  para cada (k = 1 ... n)             // para cada vertice
- *      para cada (i = 1 ... n)
- *          para cada (j = 1 ... n)             // para cada par de vertices i,j
- *              if not (lat[i][j] <= lat[i][k] + lat[k][j]) return IMPOSIBLE
- * */
 
 vector<int> bfs(int raiz){
-
     vector<int> distancias(n+1, -1);  // -1 = inf
     distancias[raiz] = 0;
-
     queue<int> q;
     q.push(raiz);
-
     while (not q.empty()) {
         int nodo = q.front();
         q.pop();
@@ -59,7 +53,6 @@ vector<int> bfs(int raiz){
             }
         }
     }
-
     return distancias;
 }
 
@@ -81,19 +74,19 @@ int main(){
         dist.assign(n+1, vector<int>(n+1, 0));
 
         for(int j=2; j<=n; j++){
-            for(int h=1; h<j; h++){ // armar matriz latencias
+            for(int h=1; h<j; h++){
                 int l;
                 cin >> l;
 
-                lat[j][h]=l;
-                lat[h][j]=l;
+                lat[j][h]=l; // armamos matriz de latencias
+                lat[h][j]=l; // de manera simétrica
 
-                ady[j][h]=1;
-                ady[h][j]=1;
+                ady[j][h]=1; // armamos matriz de adyacencia
+                ady[h][j]=1; // para luego quitar aristas más fácilmente
             }
         }
 
-        int answer = check_floyd_warshall();
+        int answer = check_floyd_warshall(); // O(n³)
 
         if(answer == 1){
             quitar_innecesarias(); // O(n³)
