@@ -17,12 +17,12 @@ int segundoSubconj;
 int INF = 1e9;
 vector<vector<int>> capacity;
 
-
+// esta funcion es para crear el grafo bipartito de subfilas x subcolumnas
 void make_pares(){
     // primero armo por filas
     int nodo = 1;
     int i = 0, j = 0;
-    bool check_nodo = false;
+    bool check_nodo = false; // con este chequeo si aumento o no el numero de nodo a agregar
 
     while(i < N){
         check_nodo = false;
@@ -96,9 +96,10 @@ void armarGrafo(){
         adj[i]=sumidero;
     }
 
-    // ahora ya quedo armado, ajd[0] es el vertice fuente y adj[Nodos-1] es el vertice sumidero
-    // y adj[1], adj[2], ..., adj[Nodos-2] son los vertices de cada subconjunto del grafo bipartito
+    // ahora ya quedo armado, ajd[0] es el vertice fuente y adj[Nodos+2-1] es el vertice sumidero
+    // y adj[1], adj[2], ..., adj[Nodos] son los vertices de cada subconjunto del grafo bipartito
 }
+
 
 void armarCapacity(){
     capacity.assign(adj.size(),vector<int>(adj.size(),0));
@@ -121,7 +122,7 @@ void grafoSinDirecciones(){
     }
 }
 
-
+// BFS para grafo no dirigido, por eso la funcion grafoSinDirecciones
 int bfs(int s, int t, vector<int>& parent) {
     fill(parent.begin(), parent.end(), -1);
     parent[s] = -2;
@@ -146,6 +147,7 @@ int bfs(int s, int t, vector<int>& parent) {
     return 0;
 }
 
+// algoritmo de Edmond-Karp
 int maxflow(int s, int t) {
     int n = adj.size();
     int flow = 0;
@@ -165,6 +167,7 @@ int maxflow(int s, int t) {
 
     return flow;
 }
+
 
 int main(){
     int tests;
