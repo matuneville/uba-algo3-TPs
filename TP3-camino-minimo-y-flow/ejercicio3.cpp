@@ -7,13 +7,13 @@ using namespace std;
 #define subtableros vector<vector<pair<int, int>>>
 
 matriz adj;
+matriz nuevoAdj;
 matriz tablero;
 subtableros pares;
 
 int N; // N del tamaño del tablero
 int Nodos; // Cantidad de nodos del grafo bipartito
 int segundoSubconj;
-int s; int t;
 int INF = 1e9;
 vector<vector<int>> capacity;
 
@@ -90,9 +90,9 @@ void armarGrafo(){
     }
 
     // por cada vértice de subcolumnas ponemos aristas a t
-    for(int i=segundoSubconj;i<adj.size();i++){
-        int k = adj.size()-1;
-        vector<int> sumidero = {k};
+    for(int i=segundoSubconj;i<adj.size()-1;i++){
+        int t = adj.size()-1;
+        vector<int> sumidero = {t};
         adj[i]=sumidero;
     }
 
@@ -101,18 +101,24 @@ void armarGrafo(){
 }
 
 void armarCapacity(){
-    /*capacity.assign(adj.size(),{});
+    capacity.assign(adj.size(),vector<int>(adj.size(),0));
     for(int i=0;i<adj.size();i++){
-        for(int j=0;j<adj[i].size();j++){
-            capacity[i].push_back(1);
-        }
-    }*/
-    /*capacity.assign(adj.size(),vector<int>(adj.size(),0));
-    for(int i=0;i<adj.size();i++){
-        for(int j=0;j<adj[i].size();j++){
+        for(auto j: adj[i]){
             capacity[i][j] = 1;
         }
-    }*/
+    }
+}
+
+
+// adj = {{1,2},{3,4},{3},{5},{5},{}} (ejemplo test1)
+// nuevoAdj = {{1,2},{0,3,4},{0,3},{1,2,5},{1,5},{3,4}}
+void grafoSinDirecciones(){
+    for(int i=0;i<adj.size();i++){
+        for(auto j: adj[i]){
+            nuevoAdj[i].push_back(j);
+            nuevoAdj[j].push_back(i);
+        }
+    }
 }
 
 
@@ -127,7 +133,7 @@ int bfs(int s, int t, vector<int>& parent) {
         int flow = q.front().second;
         q.pop();
 
-        for (int next : adj[cur]) {
+        for (int next : nuevoAdj[cur]) {
             if (parent[next] == -1 && capacity[cur][next]) {
                 parent[next] = cur;
                 int new_flow = min(flow, capacity[cur][next]);
@@ -137,12 +143,11 @@ int bfs(int s, int t, vector<int>& parent) {
             }
         }
     }
-
     return 0;
 }
 
 int maxflow(int s, int t) {
-    int n = Nodos + 2;
+    int n = adj.size();
     int flow = 0;
     vector<int> parent(n);
     int new_flow;
@@ -181,10 +186,11 @@ int main(){
         adj.assign(Nodos + 2, vector<int>()); // lo armo con size(grafo bipartito) + source + sink
         armarGrafo();
         armarCapacity();
+        nuevoAdj.assign(adj.size(),{}); // grafo sin direcciones para usar en el bfs
+        grafoSinDirecciones(); // arma el grafo mencionado arriba
         int res= maxflow(0,adj.size()-1);
         output.push_back(res);
     }
-
     for (int i = 0; i < tests; ++i) {
         cout << output[i] << endl;
     }
