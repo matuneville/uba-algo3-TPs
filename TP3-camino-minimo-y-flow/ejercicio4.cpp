@@ -4,19 +4,16 @@
 
 using namespace std;
 
-int n;
 vector<vector<int>> capacity;
 vector<vector<int>> adj;
 vector<vector<int>> capacityP;
-vector<vector<int>> nuevoAdj;
 int INF = 1e9;
 
-int maxArista;
+int maxArista, minArista;
 
 int x;
 
 int bfs(int s, int t, vector<int>& parent) {
-    n = adj.size()-1;
     fill(parent.begin(), parent.end(), -1);
     parent[s] = -2;
     queue<pair<int, int>> q;
@@ -27,7 +24,7 @@ int bfs(int s, int t, vector<int>& parent) {
         int flow = q.front().second;
         q.pop();
 
-        for (int next : nuevoAdj[cur]) {
+        for (int next : adj[cur]) {
             if (parent[next] == -1 && capacityP[cur][next]) {
                 parent[next] = cur;
                 int new_flow = min(flow, capacityP[cur][next]);
@@ -43,7 +40,7 @@ int bfs(int s, int t, vector<int>& parent) {
 
 int maxflow(int s, int t) {
     int flow = 0;
-    vector<int> parent(n);
+    vector<int> parent(adj.size());
     int new_flow;
 
     while (new_flow = bfs(s, t, parent)) {
@@ -56,43 +53,35 @@ int maxflow(int s, int t) {
             cur = prev;
         }
     }
-
     return flow;
 }
 
 void actualizar_capacity(int d){
-    for(int i=x+1;i<adj.size();i++){
-        for(int j = x+1; j < adj.size();j++){
-            capacityP[i][j] /= d;
-        }
-    }
-}
-
-void grafoSinDirecciones(){
-    for(int i=0;i<adj.size();i++){
-        for(auto j: adj[i]){
-            nuevoAdj[i].push_back(j);
-            nuevoAdj[j].push_back(i);
+    for(int i=1;i<adj.size();i++){
+        for(int j: adj[i]){
+            if(d != 0){
+                capacityP[i][j] = capacity[i][j]/d;
+            }else {
+                capacityP[i][j] = 0;
+            }
         }
     }
 }
 
 
 int find_result(){
-    int low = 0, high = maxArista, mid = (low+high)/2;
+    int low = 1, high = maxArista, mid = (low+high)/2;
     int res = mid;
 
-    while(low != high){
-        capacityP = capacity;
+    while(low <= high){
         actualizar_capacity(mid);
-        nuevoAdj.assign(adj.size(),{}); // grafo sin direcciones para usar en el bfs
-        grafoSinDirecciones(); // arma el grafo mencionado arriba
-
         int flujo_max = maxflow(0, adj.size()-1);
-        if(flujo_max == x)
-            low = mid;
+        capacityP[0][1]=x;
+        if(low == 0 and high == 1){mid = 0; break;}
+        if(flujo_max >= x)
+            low = mid+1;
         else
-            high = mid;
+            high = mid-1;
         mid = (low+high)/2;
     }
 
@@ -111,28 +100,28 @@ int main (){
         int N, M;
         cin >> N >> M >> x;
 
-        capacity.assign(M+x+1, vector<int>(M+x+1, 0));
-        adj.assign(M+x+1, {});
+        capacity.assign(N+1, vector<int>(N+1, 0));
+        capacityP.assign(N+1, vector<int>(N+1, 0));
+        adj.assign(N+1, {});
 
-
-        for(int k=1;k<=x;k++){
-            adj[0].push_back(k); //conecto fuente a cada amigo
-            capacity[0][k]=1;
-            adj[k].push_back(x+1); //conecto cada amigo a la primera esquina
-            capacity[k][x+1]=1;
-        }
+        adj[0].push_back(1); //conecto fuente a taller
+        adj[1].push_back(0);
+        capacity[0][1]=x;
+        capacityP[0][1]=x;
 
         maxArista = -INF;
+        minArista = INF;
         // conecto esquinas con calles
         for (int j = 0; j < M; j++){
             int u, v, c;
             cin >> u >> v >> c;
             if(c > maxArista) maxArista = c;
-            adj[x+u].push_back(x+v);
-            capacity[x+u][x+v] = c;
+            if(c < minArista) minArista = c;
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+            capacity[u][v] = c;
         }
 
-        n = M+x+1;
         output.push_back(find_result());
     }
 
