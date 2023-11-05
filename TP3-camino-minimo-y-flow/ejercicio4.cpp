@@ -56,6 +56,7 @@ int maxflow(int s, int t) {
     return flow;
 }
 
+// actualizamos capacidades como c/k cuando chequeamos la capacidad de k herramientas por amigo
 void actualizar_capacity(int d){
     for(int i=1;i<adj.size();i++){
         for(int j: adj[i]){
@@ -68,7 +69,8 @@ void actualizar_capacity(int d){
     }
 }
 
-
+// esta es la función principal que va buscando de forma binaria el número de herramientas que llevará cada amigo
+// luego, el resultado será k*x, siendo x cantidad de amigos y k el número de herramientas hallado
 int find_result(){
     int low = 1, high = maxArista, mid = (low+high)/2;
     int res = mid;
@@ -106,7 +108,7 @@ int main (){
 
         adj[0].push_back(1); //conecto fuente a taller
         adj[1].push_back(0);
-        capacity[0][1]=x;
+        capacity[0][1]=x; 
         capacityP[0][1]=x;
 
         maxArista = -INF;
